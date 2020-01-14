@@ -1,0 +1,58 @@
+import numpy as np
+from random import randint
+from random import choice
+from random import random as rng
+import matplotlib.pyplot as plt
+
+def new_population(pop_size, gene_count, chromosome_count = 1, allele_count = 2, diploid = True):
+  if diploid == True:
+    population = np.empty((pop_size, 2, chromosome_count, gene_count))
+    for i in range(len(population)):
+      for j in range(chromosome_count):
+        population[i][0][j] = population[i][1][j] = np.random.randint(0, (allele_count), size=gene_count)    
+  else:
+    population = np.empty((pop_size, gene_count))
+    for i in range(len(population)):
+      population[i] = np.random.randint(0, (allele_count), size=gene_count)
+  return(population)
+
+def new_generation(population, diploid = True, mutation_rate = 0.0001, co_rate = 0.005):
+  np.random.shuffle(population)
+  allele_count = np.amax(population)+1
+  if diploid == True:
+    child_population = np.empty_like(population)
+    for org in population:
+        for ploidy in org:
+          for chromosome in ploidy:
+            for gene in chromosome:
+              if rng() < mutation_rate:
+                gene = np.random.randint(0, allele_count)
+    for i in range(0, len(population), 2):
+      p1 = population[i]
+      p2 = population[i+1]
+      #gdzies tu c-o
+      child_population[i] = [choice(population[i]), choice(population[i+1])]
+      child_population[i+1] = [choice(population[i]), choice(population[i+1])]
+  return(child_population)                      
+
+def gene_drift(pop_size, gene_count, iterations = 10, chromosome_count = 1,
+               allele_count = 2, diploid = True, mutation_rate = 0.0001, co_rate = 0.005):
+  
+  pop = new_population(pop_size, gene_count, chromosome_count, allele_count, diploid)
+  allele_changes = np.empty((iterations, gene_count, allele_count))
+
+  for i in range(iterations):
+    pop = new_generation(pop, diploid, mutation_rate, co_rate)
+
+    for gene in range(gene_count):
+      for allele in range(allele_count):
+        allele_changes[i][gene][allele] = np.count_nonzero(pop == allele, axis = 0)[0][0][gene] + np.count_nonzero(pop == allele, axis = 0)[1][0][gene]
+
+
+  return(allele_changes)
+
+gene_drift(10, 2)[0][0]
+
+data = get_allele(gene_drift(pop_size= 10, gene_count= 2, allele_count=5, iterations=100), 0) #tu wpisujemy parametry
+for i in data:
+  plt.plot(i)
